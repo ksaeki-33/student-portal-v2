@@ -59,7 +59,14 @@ const translations = {
     classroom: '教室',
     instructor: '担当',
     creditsLabel: '単位',
-    semester: '2026 Spring Semester'
+    semester: '2026 Spring Semester',
+    searchPlaceholder: 'ポータル内を検索',
+    unreadNews: '未読のお知らせ',
+    weeklyPlan: '今週の予定',
+    todayClass: '今日の授業',
+    campusStatus: 'Campus Ready',
+    studentSince: '2026年度 入学',
+    notifications: '通知'
   },
   en: {
     appName: 'TIU Student Portal',
@@ -109,18 +116,25 @@ const translations = {
     classroom: 'Room',
     instructor: 'Instructor',
     creditsLabel: 'Credits',
-    semester: '2026 Spring Semester'
+    semester: '2026 Spring Semester',
+    searchPlaceholder: 'Search portal',
+    unreadNews: 'Unread News',
+    weeklyPlan: 'This Week',
+    todayClass: "Today's Classes",
+    campusStatus: 'Campus Ready',
+    studentSince: 'Admitted 2026',
+    notifications: 'Notifications'
   }
 };
 
 const navItems = [
-  ['dashboard', 'DB'],
-  ['news', 'NW'],
-  ['schedule', 'SC'],
-  ['grades', 'GR'],
-  ['registration', 'CR'],
-  ['studentCard', 'ID'],
-  ['settings', 'ST']
+  ['dashboard', 'dashboard'],
+  ['news', 'news'],
+  ['schedule', 'schedule'],
+  ['grades', 'grades'],
+  ['registration', 'registration'],
+  ['studentCard', 'studentCard'],
+  ['settings', 'settings']
 ];
 
 const newsItems = [
@@ -284,7 +298,7 @@ function Shell({ activePage, setActivePage, language, setLanguage, onLogout, t }
               onClick={() => setActivePage(key)}
               type="button"
             >
-              <span>{icon}</span>
+              <span><Icon name={icon} /></span>
               {t[key]}
             </button>
           ))}
@@ -292,9 +306,25 @@ function Shell({ activePage, setActivePage, language, setLanguage, onLogout, t }
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <div>
+          <div className="topbar-title">
+            <div className="brand-mark header-logo">TIU</div>
+            <div>
             <p>{t.university}</p>
             <h1>{pageTitle}</h1>
+            </div>
+          </div>
+          <label className="search-box">
+            <Icon name="search" />
+            <input placeholder={t.searchPlaceholder} aria-label={t.searchPlaceholder} />
+          </label>
+          <div className="header-utilities">
+            <button className="icon-button" type="button" aria-label={t.notifications}>
+              <Icon name="bell" />
+              <span className="notification-dot" aria-hidden="true" />
+            </button>
+            <div className="profile-chip" aria-label={student.name}>
+              <span>{student.name.slice(0, 1)}</span>
+            </div>
           </div>
           <div className="topbar-actions">
             <select value={language} onChange={(event) => setLanguage(event.target.value)} aria-label={t.languageLabel}>
@@ -317,7 +347,7 @@ function Shell({ activePage, setActivePage, language, setLanguage, onLogout, t }
             type="button"
             aria-label={t[key]}
           >
-            <span>{icon}</span>
+            <span><Icon name={icon} /></span>
           </button>
         ))}
       </nav>
@@ -341,31 +371,58 @@ function Page({ page, t, language }) {
 function Dashboard({ t, language }) {
   const nextClass = scheduleItems[1];
   return (
-    <div className="page-grid">
-      <section className="hero-panel">
-        <p>{t.today}</p>
-        <h2>{t.welcome}</h2>
+    <div className="dashboard-layout">
+      <section className="hero-panel welcome-card">
+        <div>
+          <span className="eyebrow">{t.campusStatus}</span>
+          <h2>{t.welcome}</h2>
+          <p>{t.studentSince}</p>
+        </div>
         <div className="stats-row">
           <Stat label={t.enrolled} value="5" />
           <Stat label={t.credits} value="10" />
           <Stat label={t.gpa} value="3.82" />
         </div>
       </section>
-      <section className="card">
-        <h2>{t.profile}</h2>
-        <InfoList t={t} language={language} />
-      </section>
-      <section className="card">
-        <h2>{t.nextClass}</h2>
+      <section className="card dashboard-card today-card">
+        <div className="card-heading">
+          <Icon name="schedule" />
+          <h2>{t.todayClass}</h2>
+        </div>
         <div className="class-focus">
           <span>{language === 'ja' ? nextClass.dayJa : nextClass.dayEn} {nextClass.time}</span>
           <strong>{nextClass.course}</strong>
-          <small>{t.classroom}: {nextClass.room}</small>
+          <small>{t.classroom}: {nextClass.room} / {t.instructor}: {nextClass.instructor}</small>
         </div>
       </section>
-      <section className="card wide">
-        <h2>{t.notices}</h2>
+      <section className="card dashboard-card unread-card">
+        <div className="card-heading">
+          <Icon name="news" />
+          <h2>{t.unreadNews}</h2>
+        </div>
         <NewsList t={t} language={language} compact />
+      </section>
+      <section className="card dashboard-card week-card">
+        <div className="card-heading">
+          <Icon name="calendar" />
+          <h2>{t.weeklyPlan}</h2>
+        </div>
+        <div className="mini-schedule">
+          {scheduleItems.slice(0, 4).map((item) => (
+            <div key={`${item.dayEn}-${item.time}`}>
+              <span>{language === 'ja' ? item.dayJa : item.dayEn}</span>
+              <strong>{item.course}</strong>
+              <small>{item.time}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="card dashboard-card profile-card">
+        <div className="card-heading">
+          <Icon name="studentCard" />
+          <h2>{t.profile}</h2>
+        </div>
+        <InfoList t={t} language={language} />
       </section>
     </div>
   );
@@ -513,6 +570,27 @@ function Stat({ label, value }) {
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  );
+}
+
+function Icon({ name }) {
+  const icons = {
+    dashboard: <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h3A1.5 1.5 0 0 1 10 5.5v3A1.5 1.5 0 0 1 8.5 10h-3A1.5 1.5 0 0 1 4 8.5v-3Zm10 0A1.5 1.5 0 0 1 15.5 4h3A1.5 1.5 0 0 1 20 5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 14 8.5v-3ZM4 15.5A1.5 1.5 0 0 1 5.5 14h3a1.5 1.5 0 0 1 1.5 1.5v3A1.5 1.5 0 0 1 8.5 20h-3A1.5 1.5 0 0 1 4 18.5v-3Zm10 0a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a1.5 1.5 0 0 1-1.5-1.5v-3Z" />,
+    news: <path d="M5 5.5A1.5 1.5 0 0 1 6.5 4h11A1.5 1.5 0 0 1 19 5.5v13A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-13Zm3 3h8M8 12h8M8 15.5h5" />,
+    schedule: <path d="M7 3.5V6m10-2.5V6M5.5 8.5h13M6.5 5h11A1.5 1.5 0 0 1 19 6.5v11A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5v-11A1.5 1.5 0 0 1 6.5 5Zm3 7h2.5v2.5H9.5V12Z" />,
+    grades: <path d="M6 4.5h12A1.5 1.5 0 0 1 19.5 6v12A1.5 1.5 0 0 1 18 19.5H6A1.5 1.5 0 0 1 4.5 18V6A1.5 1.5 0 0 1 6 4.5Zm2.5 10 2.1-2.8 2.2 1.8 3-4" />,
+    registration: <path d="M6 5h8.5L19 9.5V19a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm8 0v5h5M8 14h8M8 17h5" />,
+    studentCard: <path d="M5.5 6h13A1.5 1.5 0 0 1 20 7.5v9A1.5 1.5 0 0 1 18.5 18h-13A1.5 1.5 0 0 1 4 16.5v-9A1.5 1.5 0 0 1 5.5 6Zm2.5 8.5c.7-1 1.6-1.5 2.8-1.5s2.1.5 2.8 1.5M10.8 11.5a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4Zm5.7-2h1.2m-1.2 3h1.2" />,
+    settings: <path d="M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm0-5 1.2 2.2 2.5.7 2.1-1.2 1.8 3-1.8 1.8.1 2.6 1.7 1.9-1.8 3-2.4-.8-2.3 1.2L12 20.5l-1.2-2.6-2.3-1.2-2.4.8-1.8-3 1.7-1.9.1-2.6-1.8-1.8 1.8-3 2.1 1.2 2.5-.7L12 3.5Z" />,
+    search: <path d="m19 19-4.2-4.2m1.7-4.3a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z" />,
+    bell: <path d="M18 16H6l1.4-1.8V10a4.6 4.6 0 0 1 9.2 0v4.2L18 16Zm-4.2 2a2 2 0 0 1-3.6 0" />,
+    calendar: <path d="M7 4v2.5M17 4v2.5M5.5 9h13M6.5 6h11A1.5 1.5 0 0 1 19 7.5v10A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5v-10A1.5 1.5 0 0 1 6.5 6Z" />
+  };
+
+  return (
+    <svg aria-hidden="true" className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {icons[name]}
+    </svg>
   );
 }
 
